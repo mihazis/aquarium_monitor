@@ -12,3 +12,22 @@ SDA = Data Cable
 RES = Reset line
 D/C = Data/Command
 CS = Chip select
+
+
+Подключение к ttgo t-display
+
+#MH-Z19B
+Rx подключен на Tx2 GPIO17
+Tx подключен на GPIO25 его надо сделать Rx видимо
+
+#OLED SPD0301
+CS = GPIO12
+DC = GPIO13
+RES = GPIO15
+SDA = GPIO2
+SCK = GPIO27
+
+#ENCODER
+SW = GPIO33
+DT = GPIO32
+CLK = GPIO38
