@@ -21,10 +21,10 @@ Rx подключен на Tx2 GPIO17
 Tx подключен на GPIO25 его надо сделать Rx видимо
 
 #OLED SPD0301
-CS = GPIO12
+CS = GPIO26
 DC = GPIO13
-RES = GPIO15
-SDA = GPIO2
+RES = GPIO22
+SDA = GPIO21
 SCK = GPIO27
 
 #ENCODER
