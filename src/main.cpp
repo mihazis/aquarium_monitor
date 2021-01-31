@@ -12,6 +12,7 @@
 #endif
 #define FOREVER for(;;)
 
+
 /*===============блок констант=====**================*/
 
 const char* ssid = "Tomato24";
@@ -79,4 +80,4 @@ void loop(void) {
   show_various_fonts();
   timeClient.update();
   delay(1000);
- }
+}
