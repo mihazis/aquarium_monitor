@@ -38,7 +38,6 @@ void setup(void) {
   
   timeClient.begin();
   timeClient.setTimeOffset(10800);
-
 }
 
 /*===============блок пользовательских функций=======*/
@@ -46,9 +45,16 @@ void show_various_fonts(void) {
   u8g2.firstPage();
   do {
     u8g2.setFont(u8g2_font_freedoomr25_mn);
-    u8g2.setCursor(10, 45);
-    u8g2.setContrast(255); 
+    u8g2.setCursor(10, 35);
+    u8g2.setContrast(5); 
     u8g2.print(timeClient.getFormattedTime());
+    u8g2.setFont(u8g2_font_4x6_tn);
+    u8g2.setCursor(0,5);
+    u8g2.print(WiFi.localIP());
+
+
+
+    
     } while ( u8g2.nextPage() );
 }
 
@@ -71,9 +77,6 @@ void show_all_on_ips(void) {
 /*===============блок основной зацикленной функции=====*/
 void loop(void) {
   show_various_fonts();
-
   timeClient.update();
-  //Serial.println(timeClient.getFormattedTime());
-
   delay(1000);
-}
+ }
