@@ -17,8 +17,8 @@ CS = Chip select
 Подключение к ttgo t-display
 
 #MH-Z19B
-Rx подключен на Tx2 GPIO17
-Tx подключен на GPIO25 его надо сделать Rx видимо
+#define MHZ19B_TX_PIN        17
+#define MHZ19B_RX_PIN        25
 
 #OLED SPD0301
 CS = GPIO26
