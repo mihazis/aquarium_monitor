@@ -40,6 +40,9 @@ int16_t result;
 void setup(void) {
   u8g2.begin();
   Serial.begin(115200);
+  //timeClient.begin();
+  //timeClient.setTimeOffset(10800);
+  delay(10000);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
   delay(500);
@@ -49,10 +52,28 @@ void setup(void) {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   
-  timeClient.begin();
-  timeClient.setTimeOffset(10800);
-  
-  //++++++++++++=для mh-z19b+++++++++++++++++++++++++++
+}
+int16_t get_co2() {
+    {
+      // Minimum interval between CO2 reads is required
+      if (mhz19b.isReady()) {
+          // Read CO2 concentration from sensor
+          result = mhz19b.readCO2();
+
+          // Print result
+          if (result < 0) {
+              // An error occurred
+              //printErrorCode(result);
+          } else {
+              return result;
+          }
+      }
+  }
+  }
+
+void mhz19_heating(void) // Вот эту бы функцию вызвать только один раз, чтоб прогреть. Но ставить в сетап не хочу.
+{
+
   char firmwareVersion[5];
   mhzSerial.begin(9600);
   while ( !mhz19b.detect() ) {
@@ -66,25 +87,6 @@ void setup(void) {
   mhz19b.getVersion(firmwareVersion, sizeof(firmwareVersion));
   Serial.println(mhz19b.getAutoCalibration() ? F("On") : F("Off"));
 
-  
-}
-
-/*===============блок пользовательских функций=======*/
-void show_various_fonts(void) {
-  u8g2.firstPage();
-  do {
-    u8g2.setFont(u8g2_font_freedoomr25_mn);
-    u8g2.setCursor(10, 35);
-    u8g2.setContrast(5); 
-    u8g2.print(timeClient.getFormattedTime());
-    u8g2.setFont(u8g2_font_4x6_tn);
-    u8g2.setCursor(0,5);
-    u8g2.print(WiFi.localIP());
-
-
-
-    
-    } while ( u8g2.nextPage() );
 }
 
 void printErrorCode(int16_t result)
@@ -104,43 +106,67 @@ void printErrorCode(int16_t result)
     }
 }
 
-int16_t get_co2() {
-  {
-    // Minimum interval between CO2 reads is required
-    if (mhz19b.isReady()) {
-        // Read CO2 concentration from sensor
-        result = mhz19b.readCO2();
+void show_co2(void) {
+  u8g2.firstPage();
+  do {
+    u8g2.clearDisplay();
+    u8g2.setFont(u8g2_font_freedoomr25_mn);
+    u8g2.setCursor(10, 35);
+    u8g2.setContrast(5); 
+    u8g2.print(timeClient.getFormattedTime());
 
-        // Print result
-        if (result < 0) {
-            // An error occurred
-            printErrorCode(result);
-        } else {
-            return result;
-        }
-    }
-}
-}
+    u8g2.setFont(u8g2_font_freedoomr25_mn);
+    u8g2.setCursor(15, 60);
+    u8g2.setContrast(5); 
+    u8g2.print(get_co2());
 
-void get_time(void) {
-  u8g2.print(F("566 ppm"));
-}
-
-void show_all_on_oled(void) {
-  u8g2.print(F("566 ppm"));
-}
-
-void show_all_on_ips(void) {
-  u8g2.print(F("566 ppm"));
+    u8g2.setFont(u8g2_font_4x6_tn);
+    u8g2.setCursor(0,5);
+    u8g2.print(WiFi.localIP());
+   
+    } while ( u8g2.nextPage() );
 }
 
 
+void show_1(void) {
+  u8g2.firstPage();
+  do {
+    //u8g2.clearDisplay();
+    u8g2.setFont(u8g2_font_freedoomr25_mn);
+    u8g2.setCursor(10, 35);
+    u8g2.setContrast(5); 
+    u8g2.print('1');    
+    } while ( u8g2.nextPage() );
+}
+void show_2(void) {
+  u8g2.firstPage();
+  do {
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_freedoomr25_mn);
+    u8g2.setCursor(10, 35);
+    u8g2.setContrast(5); 
+    u8g2.print(get_co2());    
+    } while ( u8g2.nextPage() );
 
-/*===============блок основной зацикленной функции=====*/
+}
+boolean b = true;
 void loop(void) {
-  show_various_fonts();
-  timeClient.update();
-  delay(10000);
-  Serial.print(get_co2());
   
+  show_1();
+  
+  delay(1000);
+
+  
+
+  delay(1000);
+  
+  
+  
+  if(b){
+    Serial.println("True");
+    mhz19_heating();
+    b = false;    
+  }
+  show_2();
+
 }
