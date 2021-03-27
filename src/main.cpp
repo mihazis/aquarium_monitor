@@ -33,8 +33,8 @@
 Encoder enc1(CLK, DT, SW);
 
 /*===============таймеры===========**================*/
-#define PERIOD_1 20000              // перерыв между включением 
-#define PERIOD_2 2000                // время работы 
+#define PERIOD_1 5000              // перерыв между включением 
+#define PERIOD_2 60000              // время работы 
 unsigned long timer_1, timer_2;
 /*===============блок констант=====**================*/
 
@@ -49,9 +49,13 @@ U8G2_SSD1309_128X64_NONAME2_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 27, /* data=*/
 ErriezMHZ19B mhz19b(&mhzSerial);
 int16_t result;
 String stringOne = "Hello String";
+String stringTwo = "Hello String";
+String stringThree = "Hello String";
+String stringInfo = "Hello String";
+String stringOnePlus = "Hello String";
 boolean one_time_flag1 = false;
 boolean one_time_flag2 = true;
-int count1 = 1;
+int contrast = 1;
 
 /*===============блок функции setup==================*/
 void setup(void) {
@@ -71,6 +75,19 @@ void setup(void) {
   enc1.setType(TYPE1);
   timer_1 = millis();
   timer_2 = millis();
+  
+  char firmwareVersion[5];
+  mhzSerial.begin(9600);
+  while ( !mhz19b.detect() ) {
+        Serial.println(F("Detecting MH-Z19B sensor..."));
+        delay(2000);
+    };
+  while (mhz19b.isWarmingUp()) {
+        Serial.println(F("Warming up..."));
+        delay(2000);
+    };
+  mhz19b.getVersion(firmwareVersion, sizeof(firmwareVersion));
+  Serial.println(mhz19b.getAutoCalibration() ? F("On") : F("Off"));
   
 }
 
@@ -132,50 +149,65 @@ void show_screen(void) {
     u8g2.print(WiFi.localIP());    
     } while ( u8g2.nextPage() );
 }
-void show_simple(int count1) {
+void show_info(String stringInfo) {
   u8g2.firstPage();
   do {
-    u8g2.setFont(u8g2_font_ncenB14_tr);
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_4x6_tn);
     u8g2.setCursor(0, 55);
-    u8g2.print(count1);
+    u8g2.print(stringInfo);
+    delay(1000);
   } while ( u8g2.nextPage() );
 }
-void show_status_line(String stringOne) {
+void show_all(String stringOne, String stringTwo, String stringThree, int contrast) {
   u8g2.firstPage();
   do {
-    u8g2.setFont(u8g2_font_logisoso38_tn);
-    u8g2.setCursor(10, 58);
+    u8g2.clearBuffer();
+    u8g2.setContrast(contrast);
+
+    u8g2.setFont(u8g2_font_cardimon_pixel_tn);
+    u8g2.setCursor(21, 62);
     u8g2.print(stringOne);
+
+    u8g2.setFont(u8g2_font_freedoomr25_mn);
+    u8g2.setCursor(10, 30);
+    u8g2.print(stringTwo);
+    
+    //u8g2.setFont(u8g2_font_4x6_tn);
+    //u8g2.setCursor(10,50);
+    //u8g2.print(stringThree);
+    
   } while ( u8g2.nextPage() );
 }  
 void mhz19_heating(void) {
-    //++++++++++++=для mh-z19b+++++++++++++++++++++++++++
   char firmwareVersion[5];
   mhzSerial.begin(9600);
   while ( !mhz19b.detect() ) {
         Serial.println(F("Detecting MH-Z19B sensor..."));
-        String stringOne = "Detecting";
-        show_status_line(stringOne);
         delay(2000);
     };
   while (mhz19b.isWarmingUp()) {
         Serial.println(F("Warming up..."));
-        String stringOne = "Warming up";
-        show_status_line(stringOne);
         delay(2000);
     };
   mhz19b.getVersion(firmwareVersion, sizeof(firmwareVersion));
   Serial.println(mhz19b.getAutoCalibration() ? F("On") : F("Off"));
 } 
+
 void first_timer() {
   if (millis() - timer_1 > PERIOD_1) {
     timer_1 = millis();
+    //String stringOne = String(get_co2());
     String stringOne = String(get_co2());
-    show_status_line(stringOne);
-  }
+    String stringOnePlus = "ppm";
+    stringOne += stringOnePlus;
+    String stringTwo = String(timeClient.getFormattedTime());
+    String stringThree = String(contrast);
+    show_all(stringOne, stringTwo, stringThree, contrast);
+    }
 }
 void second_timer() {
-  if (millis() - timer_1 > PERIOD_1) {
+  if (millis() - timer_2 > PERIOD_2) {
     timer_2 = millis();
     timeClient.update();
   }
@@ -186,32 +218,20 @@ void loop(void) {
   enc1.tick();
   first_timer();      //по первому таймеру обновляется oled экран
   second_timer();     //по второму таймеру синхронизируется время
+  
   if(one_time_flag1){ //когда допилю включить, чтоб прогрев запускался автоматом один раз при запуске
-    Serial.println("True");
     mhz19_heating();
     String stringOne = "WARM OK!";
-    show_status_line(stringOne);
+    //show_status_line(stringOne);
     one_time_flag1 = false;    
   }
-
   if (enc1.isPress()){
     mhz19_heating();
-  }
-  
-  
+    }
   if (enc1.isRight()){
-    count1++;
-    show_simple(count1);
-  }
-  
-  
+    contrast = contrast + 30;
+    }
   if (enc1.isLeft()){
-    count1--;
-    show_simple(count1);
-  }
-
-
-  //show_simple();
-  
-  
+    contrast = contrast - 30;
+    }
 }
